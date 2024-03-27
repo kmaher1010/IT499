@@ -18,6 +18,10 @@ namespace Donut.Api.Controllers {
         public async Task<ActionResult<Orders>> Add(Orders order) {
             return Ok(await _donutRepository.AddOrder(order));
         }
+        [HttpPost("{orderId}/item")]
+        public async Task<ActionResult<Orders>> Add(int orderId, [FromBody] OrderItems items) {
+            return Ok(await _donutRepository.AddOrderItem(orderId, items));
+        }
         [HttpPost("{orderId}/pending")]
         public async Task<ActionResult<Orders>> UpdateStatusPending(int orderId) {
             return Ok(await _donutRepository.UpdateOrderStatus(orderId, OrderStatus.Pending));
@@ -29,6 +33,10 @@ namespace Donut.Api.Controllers {
         [HttpPost("{orderId}/cancelled")]
         public async Task<ActionResult<Orders>> UpdateStatusCancelled(int orderId) {
             return Ok(await _donutRepository.UpdateOrderStatus(orderId, OrderStatus.Cancelled));
+        }
+        [HttpGet("customer/{customerId}")]
+        public async Task<ActionResult<List<Orders>>> GetCustomerOpenOrders( int customerId) {
+            return Ok(await _donutRepository.GetCustomerOpenOrders( customerId));
         }
     }
 }

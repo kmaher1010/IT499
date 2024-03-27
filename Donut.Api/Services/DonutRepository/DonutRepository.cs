@@ -21,6 +21,8 @@ namespace Library.WebApi.Services.DonutRepository {
         Task<Orders?> AddOrder(Orders order);
         Task<Orders?> UpdateOrderStatus(int OrderId, string status);
 
+        Task<List<Orders>> GetCustomerOpenOrders(int customerId);
+        Task<Orders?> AddOrderItem(int orderId, OrderItems items);
     }
 
     public class DonutRepository: IDonutRepository {
@@ -144,7 +146,22 @@ namespace Library.WebApi.Services.DonutRepository {
             return order;
         }
 
+        public async Task<List<Orders>> GetCustomerOpenOrders(int customerId) {
+            return await _dbContext.Orders.Include(o => o.OrderItems).Where(o => o.CustomerId == customerId && o.OrderStatus == OrderStatus.Pending).ToListAsync();
+        }
 
+        public async Task<Orders?> AddOrderItem(int orderId, OrderItems items) {
+            var order = await _dbContext.Orders.Include(o=>o.OrderItems).Where(o => o.OrderId == orderId).FirstOrDefaultAsync();
+            // only allow updates if order is in pending status
+            if (items == null || order == null || order.OrderStatus != OrderStatus.Pending) {
+                return null;
+            }
+            items.OrderId = order.OrderId;
+            order.OrderItems.Add(items);
+            order.UpdateTotal();
+            await _dbContext.SaveChangesAsync();
+            return order;
+        }
     }
 
 }
